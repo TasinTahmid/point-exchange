@@ -1,0 +1,165 @@
+
+<h1>Name: {{ customer.email }}:--{{ customer.id }}</h1>
+<button
+  id="create-discount-btn"
+  class="btn"
+  onclick="createDiscount()"
+>
+  Create Discount from point exchange
+</button>
+{% comment %} <div class="container">
+  <div class="tab">
+    <button class="tablinks" onclick="openTab(event, 'PointExchangeShop')">Point Exchange Shop</button>
+    <button class="tablinks" onclick="openTab(event, 'DiscountCoupons')">Purchases Discount Coupons</button>
+  </div>
+
+  <!-- Tab 1: Point Exchange Shop -->
+  <div id="PointExchangeShop" class="tabcontent">
+    <h2>Point Exchange Shop</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Cost</th>
+          <th>Discount</th>
+          <th>Trade</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% assign rewards = shop.metaobjects.reward_list.values %}
+        {% for reward in rewards %}
+          <tr>
+            <td>{{ reward.cost }} Points</td>
+            <td>
+              {% if reward.discount_type == 'fixed-amount' %}
+                ${{ reward.discount }} Off
+              {% else %}
+                {{ reward.discount }}% Off
+              {% endif %}
+            </td>
+            <td>
+              <button
+                class="redeem-button"
+                data-customer-id="{{ customer.id }}"
+                data-cost="{{ reward.cost }}"
+                data-discount="{{ reward.discount }}"
+                data-discount_type="{{ reward.discount_type }}"
+                onclick="redeemCoins(this)"
+              >
+                Redeem
+              </button>
+            </td>
+          </tr>
+        {% endfor %}
+        {% comment %}
+          <tr>
+            <td>100 Points</td>
+            <td>$100 Off</td>
+            <td><button class="reedem-button">Reedem</button></td>
+          </tr>
+          <tr>
+            <td>200 Points</td>
+            <td>$250 Off</td>
+            <td><button class="reedem-button">Reedem</button></td>
+          </tr>
+          <tr>
+            <td>500 Points</td>
+            <td>$600 Off</td>
+            <td><button class="reedem-button">Reedem</button></td>
+          </tr>
+          <tr>
+            <td>700 Points</td>
+            <td>10% Off</td>
+            <td><button class="reedem-button">Reedem</button></td>
+          </tr>
+          <tr>
+            <td>900 Points</td>
+            <td>15% Off</td>
+            <td><button class="reedem-button">Reedem</button></td>
+          </tr>
+          <tr>
+            <td>1200 Points</td>
+            <td>20% Off</td>
+            <td><button class="reedem-button">Reedem</button></td>
+          </tr>
+        {% endcomment %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Tab 2: Purchases Discount Coupons -->
+  <div id="DiscountCoupons" class="tabcontent">
+    <h2>Purchases Discount Coupons</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Coupons</th>
+          <th>Offer</th>
+          <th>Valid till</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>SUMMER10</td>
+          <td>10% Off</td>
+          <td>31st August 2023</td>
+        </tr>
+        <tr>
+          <td>WELCOME20</td>
+          <td>20% Off</td>
+          <td>31st December 2023</td>
+        </tr>
+        <tr>
+          <td>FREESHIP</td>
+          <td>Free Shipping</td>
+          <td>15th September 2023</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div> {% endcomment %}
+
+<script>
+  async function createDiscount() {
+    try {
+      console.log('last version....2222');
+      const API_URL = 'https://store-themeog.myshopify.com/apps/my-custom-path';
+      const payload = {
+        discountCode: 'SUMMER10',
+        value: 10,
+        type: 'percentage',
+      };
+
+      // Send POST request to your Remix API
+      const response = await fetch(API_URL, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+        // body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      console.log('data::::::::::', data);
+
+      if (response.ok) {
+        console.log(`Discount Created: ${data}`);
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('API Error:', error);
+    }
+  }
+</script>
+
+{% schema %}
+{
+  "name": "Point Exchange Block",
+  "target": "section",
+  "settings": [
+    { "type": "product", "id": "product", "label": "product", "autofill": true },
+    { "type": "color", "id": "colour", "label": "Star Colour", "default": "#ff0000" }
+  ]
+}
+{% endschema %}
