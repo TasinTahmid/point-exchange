@@ -26,7 +26,7 @@ function Extension() {
         totalPoints
       };
 
-      const response = await fetch('https://bio-grown-sacred-owned.trycloudflare.com/api/discount', {
+      const response = await fetch('https://realty-extending-wrapping-scheduling.trycloudflare.com/api/discount', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -122,7 +122,7 @@ function Extension() {
 
       console.log("customerID:::", customerId)
       const res = await fetch(
-        `https://bio-grown-sacred-owned.trycloudflare.com/api/customer-discounts/${customerIdCode}`,
+        `https://realty-extending-wrapping-scheduling.trycloudflare.com/api/customer-discounts/${customerIdCode}`,
         {
           headers: {
             Authorization: `Bearer ${sessionToken}`,
