@@ -26,7 +26,7 @@ function Extension() {
         totalPoints
       };
 
-      const response = await fetch('https://realty-extending-wrapping-scheduling.trycloudflare.com/api/discount', {
+      const response = await fetch('https://resident-volunteer-dance-operated.trycloudflare.com/api/discount', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,10 +38,20 @@ function Extension() {
       const data = await response.json();
       console.log('Discount response::::::::::', data);
 
-      const { discountResponse, customerMetafieldsResponse } = data.finalResponse;
+      const { discountResponse, customerMetafieldsResponse, updatedDiscountList } = data.finalResponse;
 
-      if(customerMetafieldsResponse?.key == "total_points_points_exchange" && customerMetafieldsResponse?.value){
-        setTotalPoints(customerMetafieldsResponse.value)
+      let updatedPoints;
+      customerMetafieldsResponse.customer.metafields.edges.forEach(({node}) => {
+        if(node?.key == "total_points_points_exchange" && node?.namespace == "custom"){
+          updatedPoints = node?.value;
+        }
+      });
+
+      if(updatedPoints){
+        setTotalPoints(updatedPoints);
+      }
+      if(updatedDiscountList){
+        setDiscountList(updatedDiscountList);
       }
 
     } catch (error) {
@@ -122,7 +132,7 @@ function Extension() {
 
       console.log("customerID:::", customerId)
       const res = await fetch(
-        `https://realty-extending-wrapping-scheduling.trycloudflare.com/api/customer-discounts/${customerIdCode}`,
+        `https://resident-volunteer-dance-operated.trycloudflare.com/api/customer-discounts/${customerIdCode}`,
         {
           headers: {
             Authorization: `Bearer ${sessionToken}`,
@@ -185,16 +195,16 @@ function RewardsTable({rows, totalPoints, customerId, handleCreateDiscount}) {
     <>
       <s-stack direction="inline" gap="base" paddingBlockStart="base">
         <s-box padding="large" minInlineSize="150px">
-          Cost (in points)
+          <s-text type='strong'> Cost (in points)</s-text>
         </s-box>
         <s-box padding="large" minInlineSize="150px">
-          Discount
+          <s-text type='strong'> Discount</s-text>
         </s-box>
         <s-box padding="large" minInlineSize="150px">
-          Type
+          <s-text type='strong'> Type</s-text>
         </s-box>
         <s-box padding="large" minInlineSize="150px">
-          Trade
+          <s-text type='strong'> Trade</s-text>
         </s-box>
       </s-stack>
       {rows.map((row, i) => (
@@ -232,25 +242,25 @@ function DiscountTable({rows}) {
   return (
     <>
         <s-stack direction="inline" gap="base" paddingBlockStart="base">
-          <s-box padding="large" minInlineSize="150px">
-            Discount Code
+          <s-box padding="large" minInlineSize="220px">
+            <s-text type='strong'>Discount Code</s-text>
           </s-box>
           <s-box padding="large" minInlineSize="150px">
-            Discount
+            <s-text type='strong'>Discount</s-text> 
           </s-box>
           <s-box padding="large" minInlineSize="150px">
-            Type
+            <s-text type='strong'>Type</s-text> 
           </s-box>
           <s-box padding="large" minInlineSize="150px">
-            Status
+            <s-text type='strong'>Status</s-text> 
           </s-box>
           <s-box padding="large" minInlineSize="150px">
-            Validity
+            <s-text type='strong'>Validity</s-text> 
           </s-box>
         </s-stack>
       {rows.map((row, i) => (
         <s-stack direction="inline" gap="base" paddingBlockStart="base">
-          <s-box padding="large" minInlineSize="150px">
+          <s-box padding="large" minInlineSize="220px">
             { row.discount_code }
           </s-box>
           <s-box padding="large" minInlineSize="150px">
