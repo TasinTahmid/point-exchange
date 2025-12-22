@@ -26,7 +26,7 @@ function Extension() {
         totalPoints
       };
 
-      const response = await fetch('https://resident-volunteer-dance-operated.trycloudflare.com/api/discount', {
+      const response = await fetch('https://hispanic-unavailable-revised-exhibit.trycloudflare.com/api/discount', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +132,7 @@ function Extension() {
 
       console.log("customerID:::", customerId)
       const res = await fetch(
-        `https://resident-volunteer-dance-operated.trycloudflare.com/api/customer-discounts/${customerIdCode}`,
+        `https://hispanic-unavailable-revised-exhibit.trycloudflare.com/api/customer-discounts/${customerIdCode}`,
         {
           headers: {
             Authorization: `Bearer ${sessionToken}`,

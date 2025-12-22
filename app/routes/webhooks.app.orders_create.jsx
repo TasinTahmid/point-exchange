@@ -18,7 +18,7 @@ export const action = async ({ request }) => {
   console.log(`Payload orders/create webhook ::: ${JSON.stringify(orderData.discountCodes)}`);
   console.log(`-------------------THis is from orders/create webhook 4 ---------------`);
 
-  if(discountList.lenght == 0) return new Response();
+  if(orderData?.discountCodes?.length == 0) return new Response();
 
   const GetMetaobjectsByCustomer = `query GetMetaobjectsByCustomer {
     metaobjects(
@@ -36,95 +36,113 @@ export const action = async ({ request }) => {
         }
       }
     }
-}`;
+  }`;                         
 
+  let discountMetaobjectList;
+  let metaobjectToRemove;
   try {
     const response = await admin.graphql(GetMetaobjectsByCustomer);
 
     const { data } = await response.json();
 
-    discountList = data?.customer;
+    discountMetaobjectList = data?.metaobjects?.edges?.map(({node}) =>{
+      let discount_code;
+      node.fields.map(e=>{
+        if(e.key == "discount_code"){
+          discount_code = e.value;
+        }
+      })
 
-    console.log("Customers discountList:::", discountList)
+      if(discount_code == orderData.discountCodes[0].code){
+        metaobjectToRemove = node.id;
+        return null;
+      }
+      return node.id;
+    });
+
+    console.log("Metaobject to remove:::", metaobjectToRemove)
   } catch (error) {
     console.log("Webhook error::", error)
   }
 
-  // let pointRewardOffset;
-  // const GetPointRewardOffset = `query GetPointRewardOffset {
-  //   shop {
-  //     metafield(namespace: "custom", key: "point_reward_offset_point_exchange") {
-  //       id
-  //       namespace
-  //       key
-  //       type
-  //       value
-  //     }
-  //   }
-  // }`;
+  if(!discountMetaobjectList){
+    return new Response();
+  }
+  discountMetaobjectList = discountMetaobjectList.filter(id => id !== null);
 
-  // try {
-  //   const response = await admin.graphql(GetPointRewardOffset);
+  const updateCustomerMetafields = `mutation updateCustomerMetafields($input: CustomerInput!) {
+    customerUpdate(input: $input) {
+      customer {
+        id
+        metafields(first: 3) {
+          edges {
+            node {
+              id
+              namespace
+              key
+              value
+            }
+          }
+        }
+      }
+      userErrors {
+        message
+        field
+      }
+    }
+  }`;
 
-  //   const { data } = await response.json();
+  const updateCustomerMetafieldsVariables = {
+    "input": {
+      "metafields": [
+        {
+          "namespace": "custom",
+          "key": "discount_list_points_exchange",
+          "value": JSON.stringify(discountMetaobjectList)
+        }
+      ],
+      "id": `gid://shopify/Customer/${orderData.customerId}`
+    }
+  }
 
-  //   pointRewardOffset = data?.shop?.metafield?.value;
+  try {
+    const response = await admin.graphql(updateCustomerMetafields, {
+      variables: updateCustomerMetafieldsVariables,
+    });
 
-  //   console.log("Customers point:::", pointRewardOffset)
-  // } catch (error) {
-  //   console.log("Webhook error::", error)
-  // }
+    const { data } = await response.json();
 
-
-  
-  // try {
-  //   if(pointRewardOffset && totalCustomerPoints){
-  //     const updatedPoints = parseInt(Number(totalCustomerPoints) + Number(orderData.totalPriceAmount) * pointRewardOffset);
-  //     console.log("updatedPoints:::", updatedPoints)
-  //     const updateCustomerMetafieldMutation = `mutation updateCustomerMetafield($input: CustomerInput!, $namespace: String!, $key: String!) {
-  //       customerUpdate(input: $input) {
-  //         customer {
-  //           id
-  //           metafield(namespace: $namespace, key: $key) {
-  //             namespace
-  //             key
-  //             type
-  //             value
-  //           }
-  //         }
-  //         userErrors {
-  //           field
-  //           message
-  //         }
-  //       }
-  //     }`;
+    console.log("Updated Points Metafield2:::",JSON.stringify(data.customerUpdate))
     
-  //     const updateCustomerMetafieldsVariables = {
-  //       "input": {
-  //         "id": `gid://shopify/Customer/${orderData.customerId}`,
-  //         "metafields": [
-  //           {
-  //             "namespace": "custom",
-  //             "key": "total_points_points_exchange",
-  //             "type": "number_integer",
-  //             "value": `${updatedPoints}`
-  //           }
-  //         ]
-  //       },
-  //       "namespace": "custom",
-  //       "key": "total_points_points_exchange"
-  //     };
-  //     const response = await admin.graphql(updateCustomerMetafieldMutation, {
-  //       variables: updateCustomerMetafieldsVariables,
-  //     });
-  
-  //     const { data } = await response.json();
-  
-  //     console.log("Updated Points Metafield2:::", data.customerUpdate)
-  //   }
-  // } catch (error) {
-  //   console.log("Webhook error::", error)
-  // }
+  } catch (error) {
+    console.log("Webhook error::", error)
+  }
+  console.log("Deleted metaobject id:::", metaobjectToRemove)
+  const DeleteMetaobjectById = `mutation DeleteMetaobjectById($id: ID!) {
+    metaobjectDelete(id: $id) {
+      deletedId
+      userErrors {
+        field
+        message
+      }
+    }
+  }`;
+  const DeleteMetaobjectVariable = { 
+    "id": metaobjectToRemove
+  };
+
+  try {
+    const response = await admin.graphql(DeleteMetaobjectById, {
+      variables: DeleteMetaobjectVariable
+    });
+
+    const { data } = await response.json();
+
+    console.log("deleted metaobjects:::",JSON.stringify(data))
+    
+  } catch (error) {
+    console.log("Webhook error::", error)
+  }
 
   return new Response();
 };
